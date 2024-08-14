@@ -6,7 +6,7 @@
 
 **prepare dataset:**
 
-* place the data in the datasets directory, making sure to structure it as datasets->attack_dataset->clean_samples, adv_samples and train
+* place the data in the datasets directory, making sure to structure it as datasets->attack_dataset->clean_samples, adv_samples and train. Make sure there are no text files in these folders.
 
 **training model:**
 
@@ -16,3 +16,9 @@
 * options of algorithm_name: ERM,  Linear_Prob, LP_FT
 * options of optimizer_name: adam, sgd, adamw
 * example: python train_all.py ResNet_50 --data_dir ./datasets --trial_seed 0 --algorithm Linear_Prob --checkpoint_freq 1000 --steps 10000 --img_model ResNet-50 --lr 5e-5 --weight_decay 1e-4
+
+
+**compute attck score:**
+
+* script: python test_all.py <\name> --data_dir ./datasets --trial_seed 0 --algorithm <\algorithm_name> --swad False --blur_scale <\blur_scale>
+* example: python test_all.py ResNet_50 --data_dir ./datasets --trial_seed 0 --algorithm Linear_Prob --swad False --blur_scale 0.1
