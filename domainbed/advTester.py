@@ -116,6 +116,10 @@ def advTest(args, hparams, n_steps, checkpoint_freq, logger):
     RGB = RGB_member / (RGB_denominator + 1e-6)
     final_score = ((1-ACTC) + (1-ALD) + RGB) / 3
 
+    use_ratio = use_num / len(dataset_clean)
+
+    logger.info(f"Only clean samples that are correctly classified by the model will be used to calculate the score")
+    logger.info(f"use_ratio = {use_ratio:.3%}")
     logger.info(f"ACTC_score = {1 - ACTC:.3%}")
     logger.info(f"ALD_score = {1 - ALD:.3%}")
     logger.info(f"RGB_score = {RGB:.3%}")

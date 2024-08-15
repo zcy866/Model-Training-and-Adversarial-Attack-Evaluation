@@ -4,7 +4,7 @@ import torch.nn as nn
 import torchvision.models
 import clip
 from .convnext import convnext_base, convnext_small
-from .swin_transformer_v2 import get_small_win2, get_base_win2
+from .swin_transformer import get_small_win, get_base_win
 from .vit import vit_base_patch16
 
 class DINO_Encoder(nn.Module):
@@ -75,18 +75,18 @@ def get_backbone(name, pretrained=True, freeze_bn=True, **kwargs):
         model.head = nn.Identity()
         return Null_Head_Backbone(model, output_dim, freeze_bn)
     elif name == "swin_transformer-S":
-        model = get_small_win2(pretrained=pretrained, in_22k=True)
+        model = get_small_win(pretrained=pretrained, in_22k=True)
         model.head = nn.Identity()
         output_dim = model.num_features
         return Null_Head_Backbone(model, output_dim, freeze_bn)
     elif name == "swin_transformer-B":
-        model = get_base_win2(pretrained=pretrained, in_22k=True)
+        model = get_base_win(pretrained=pretrained, in_22k=True)
         model.head = nn.Identity()
         output_dim = model.num_features
         return Null_Head_Backbone(model, output_dim, freeze_bn)
     elif name == "mae-B":
         model = vit_base_patch16(pretrained=pretrained)
-        model.head_dist = nn.Identity()
+        model.head = nn.Identity()
         output_dim = model.embed_dim
         return Null_Head_Backbone(model, output_dim, freeze_bn)
     elif name == "ResNet-50":
