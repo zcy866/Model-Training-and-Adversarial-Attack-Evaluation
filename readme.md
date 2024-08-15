@@ -18,7 +18,7 @@
 * example: python train_all.py ResNet_50 --data_dir ./datasets --trial_seed 0 --algorithm Linear_Prob --checkpoint_freq 1000 --steps 10000 --img_model ResNet-50 --lr 5e-5 --weight_decay 1e-4
 * Important: the model will be saved in ./save_model
 
-**compute attck score:**
+**compute attack score:**
 
 * script: python test_all.py <\name> --data_dir ./datasets --trial_seed 0 --algorithm <\algorithm_name> --swad False --blur_scale <\blur_scale>
 * example: python test_all.py ResNet_50 --data_dir ./datasets --trial_seed 0 --algorithm Linear_Prob --swad False --blur_scale 0.1
