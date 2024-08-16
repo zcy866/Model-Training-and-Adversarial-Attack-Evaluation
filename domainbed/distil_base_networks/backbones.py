@@ -66,12 +66,12 @@ def get_backbone(name, pretrained=True, freeze_bn=True, **kwargs):
         return DINO_Encoder(dinov2_vits14_reg)
     elif name == "convnext-B":
         model = convnext_base(pretrained=pretrained, in_22k=True)
+        output_dim = model.head.weight.data.shape[1]
         model.head = nn.Identity()
-        output_dim = model.head.weight.data.shape[0]
         return Null_Head_Backbone(model, output_dim, freeze_bn)
     elif name == "convnext-S":
         model = convnext_small(pretrained=pretrained, in_22k=True)
-        output_dim = model.head.weight.data.shape[0]
+        output_dim = model.head.weight.data.shape[1]
         model.head = nn.Identity()
         return Null_Head_Backbone(model, output_dim, freeze_bn)
     elif name == "swin_transformer-S":

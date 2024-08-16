@@ -189,12 +189,12 @@ def train(args, hparams, n_steps, checkpoint_freq, logger):
         swad_algorithm = swad.get_final_model()
         if hparams["freeze_bn"] is False:
             n_steps = 500 if not args.debug else 10
-        logger.warning(f"Update SWAD BN statistics for {n_steps} steps ...")
-        swa_utils.update_bn(data_loader_train, swad_algorithm, n_steps)
+            logger.warning(f"Update SWAD BN statistics for {n_steps} steps ...")
+            swa_utils.update_bn(data_loader_train, swad_algorithm, n_steps)
 
         logger.warning("Evaluate SWAD ...")
-        accuracies, summaries = evaluator.evaluate(swad_algorithm)
-        results = {**summaries, **accuracies}
+        summaries = evaluator.evaluate(swad_algorithm)
+        results = {**summaries}
         start = swad_algorithm.start_step
         end = swad_algorithm.end_step
         step_str = f" [{start}-{end}]  (N={swad_algorithm.n_averaged})"
