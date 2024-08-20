@@ -26,4 +26,5 @@
 model ResNet-50 --lr 5e-5 --weight_decay 1e-4
 
 **analyze model:**
-* script: python test_all.py <\name> --data_dir ./datasets --trial_seed 0 --algorithm <\algorithm_name> --swad False --data <\data_split_type>
+* script: python analysis_tool.py <\name> --data_dir ./datasets --trial_seed 0 --algorithm <\algorithm_name> --swad False --data <\data_split_type>
+* example: python analysis_tool.py ResNet-50_val --data_dir ./datasets --trial_seed 0 --algorithm ERM --swad False --data train_const_val_const
