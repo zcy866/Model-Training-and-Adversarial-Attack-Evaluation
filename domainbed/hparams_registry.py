@@ -26,8 +26,23 @@ def _hparams(algorithm, random_state):
     hparams["batch_size"] = (32, int(2 ** random_state.uniform(3, 5)))
     hparams["weight_decay"] = (1e-4, 0.0)
     hparams["use_beta_esm"] = (False, False)
-    hparams["linear_ratio"] = (0.1, random_state.choice([0.05, 0.1, 0.15]))
+    hparams["scheduler_name"] = ("cosine_schedule", ["cosine_schedule", "const_scheduler"])
 
+    if algorithm == "LP_FT":
+        hparams["linear_ratio"] = (0.1, random_state.choice([0.05, 0.1, 0.15]))
+    elif algorithm == "EMA_Distil":
+        hparams["ema_decay"] = (0.999, [0.99, 0.995, 0.999])
+        hparams["reg_weight"] = (0.5, [0.1, 0.5, 1.0])
+    elif algorithm == "Global_Reg":
+        hparams["ema_decay"] = (0.999, [0.99, 0.995, 0.999])
+        hparams["reg_weight"] = (0.5, [0.1, 0.5, 1.0])
+        hparams["align_weight"] = (0.5, [0.1, 0.5, 1.0])
+        hparams["stop_update_step"] = (0.9, [0.85, 0.9, 0.95])
+    elif algorithm == "SAM":
+        hparams["rho"] = (0.05, [0.01, 0.05, 0.1])
+
+
+    #EMA_Distil
     return hparams
 
 

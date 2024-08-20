@@ -26,3 +26,11 @@ def get_cosine_schedule(optimizer,
         return max(0.0, 0.5 * (1.0 + math.cos(math.pi * float(num_cycles) * 2.0 * progress)))
 
     return LambdaLR(optimizer, lr_lambda, last_epoch)
+
+def build_scheduler(name, **kwargs):
+    if name == "cosine_schedule":
+        return get_cosine_schedule(**kwargs)
+    if name == "const_scheduler":
+        def lr_lambda(current_step):
+            return 1
+        return LambdaLR(kwargs["optimizer"], lr_lambda, -1)

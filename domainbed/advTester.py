@@ -65,6 +65,8 @@ def advTest(args, hparams, n_steps, checkpoint_freq, logger):
     algorithm.load_state_dict(torch.load(model_path)["model"])
     algorithm.to(device)
 
+    if hparams["use_beta_esm"]:
+        algorithm = algorithm.avg_model
     n_params = sum([p.numel() for p in algorithm.parameters()])
     logger.info("# of params = %d" % n_params)
 
@@ -98,7 +100,7 @@ def advTest(args, hparams, n_steps, checkpoint_freq, logger):
             ACTC += (soft_adv_pred.gather(1, y.unsqueeze(1)).reshape(-1) * weight).sum()
             inner_ALD = 0
             for x1, x2, yi, true_yi, wi in zip(ori_clean_x, ori_adv_x, hard_adv_pred, y, weight):
-                distance = abs(x1-x2).max()#np.max(np.max(abs(x1-x2), axis=2),axis=1).max()
+                distance = abs(x1.float()-x2.float()).max()#np.max(np.max(abs(x1-x2), axis=2),axis=1).max()
                 correct = (yi == true_yi)
                 if correct:
                     distance = 64

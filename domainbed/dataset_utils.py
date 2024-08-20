@@ -33,6 +33,24 @@ class imageDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.samples)
 
+class imageAnaDataset(torch.utils.data.Dataset):
+    def __init__(self, samples, transform):
+        super(imageAnaDataset, self).__init__()
+        self.samples = samples
+        self.transform = transform
+        self.loader = default_loader
+
+    def __getitem__(self, index):
+        path, target = self.samples[index]
+        sample = self.loader(path)
+        if self.transform is not None:
+            sample = self.transform(sample)
+        return {"x": sample, "y": target, "path": path}
+
+    def __len__(self):
+        return len(self.samples)
+
+
 class imageTestDataset(torch.utils.data.Dataset):
     def __init__(self, samples, transform, adv_transform):
         super(imageTestDataset, self).__init__()
@@ -45,7 +63,7 @@ class imageTestDataset(torch.utils.data.Dataset):
         path, target = self.samples[index]
         sample = self.loader(path)
         trans_sample = self.transform(sample)
-        return {"x": trans_sample, "y": target, "ori_x": np.array(sample), "blur_x": self.adv_transform(sample)}
+        return {"x": trans_sample, "y": target, "ori_x": np.array(transforms.Resize((224, 224))(sample)), "blur_x": self.adv_transform(sample)}
 
     def __len__(self):
         return len(self.samples)
@@ -148,6 +166,37 @@ def build_dataset(args):
     data_info = dataInfo(len(classes))
     return data_info, dataset_train, dataset_val
 
+def build_ana_dataset(args):
+    data_dir = args.data_dir
+    task_name = args.task
+    model = args.img_model
+    val_transform = get_val_transform(model)
+
+    if args.data == "train_train_val_clean":
+        train_path = os.path.join(data_dir, task_name, "train")
+        in_img_folder_dataset = torchvision.datasets.ImageFolder(train_path)
+        in_img_samples = in_img_folder_dataset.samples
+        classes = in_img_folder_dataset.classes
+
+        test_path = os.path.join(data_dir, task_name, "clean_samples")
+        out_img_samples = torchvision.datasets.ImageFolder(test_path).samples
+
+    elif args.data == "train_const_val_const":
+        train_path = os.path.join(data_dir, task_name, "split_train")
+        in_img_folder_dataset = torchvision.datasets.ImageFolder(train_path)
+        in_img_samples = in_img_folder_dataset.samples
+        classes = in_img_folder_dataset.classes
+
+        test_path = os.path.join(data_dir, task_name, "split_val")
+        out_img_samples = torchvision.datasets.ImageFolder(test_path).samples
+    else:
+        raise NotImplementedError
+
+    dataset_train = imageAnaDataset(in_img_samples, val_transform)
+    dataset_val = imageAnaDataset(out_img_samples, val_transform)
+
+    data_info = dataInfo(len(classes))
+    return data_info, dataset_train, dataset_val
 
 def build_adv_dataset(args):
     data_dir = args.data_dir
