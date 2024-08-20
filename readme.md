@@ -23,7 +23,7 @@
 
 * script: python test_all.py <\name> --data_dir ./datasets --trial_seed 0 --algorithm <\algorithm_name> --swad False --blur_scale <\blur_scale> --data <\data_split_type>
 * example: python test_all.py ResNet_50 --data_dir ./datasets --trial_seed 0 --algorithm Linear_Prob --swad False --blur_scale 0.1
-model ResNet-50 --lr 5e-5 --weight_decay 1e-4
+model ResNet-50
 
 **analyze model:**
 * script: python analysis_tool.py <\name> --data_dir ./datasets --trial_seed 0 --algorithm <\algorithm_name> --swad False --data <\data_split_type>
