@@ -38,6 +38,7 @@ def balance_analysis(args, hparams, data_loader, algorithm) -> dict:
     results["info"] = "Each row means a prediction class, each column means a true class."
     results["confusion_matrix"] = confusion_matrix
     results["accuracy_each_class"] = [confusion_matrix[i][i] / sum(confusion_matrix[:, i]) for i in range(hparams["num_classes"])]
+    results["sorted_class"] = sorted(list(enumerate(results["accuracy_each_class"])), key=lambda x:x[1])
     return results
 
 def acquire_classification_wrong(args, hparams, data_loader, algorithm):
@@ -60,6 +61,13 @@ def acquire_classification_wrong(args, hparams, data_loader, algorithm):
     for i in range(hparams["num_classes"]):
         results[str(i)] = each_class_wrong_samples_path[i]
     return results
+
+def clear_directory(directory):
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            os.remove(os.path.join(root, file))
+        for dir in dirs:
+            os.rmdir(os.path.join(root, dir))
 
 def main():
     parser = argparse.ArgumentParser(description="Sample Attack Competition")
@@ -233,6 +241,8 @@ def main():
         logger.info(val)
         if not os.path.exists(os.path.join(save_path, "train", key)):
             os.makedirs(os.path.join(save_path, "train", key))
+        else:
+            clear_directory(os.path.join(save_path, "train", key))
         for i, sample in enumerate(val):
             shutil.copy(sample, os.path.join(save_path, "train", key, str(i)+'.jpg'))
 
@@ -243,6 +253,8 @@ def main():
         logger.info(val)
         if not os.path.exists(os.path.join(save_path, "val", key)):
             os.makedirs(os.path.join(save_path, "val", key))
+        else:
+            clear_directory(os.path.join(save_path, "val", key))
         for i, sample in enumerate(val):
             shutil.copy(sample, os.path.join(save_path, "val", key, str(i)+'.jpg'))
 
