@@ -641,7 +641,7 @@ def get_base_win(pretrained=False, in_22k=False):
         num_classes = 21841
     else:
         num_classes = 1000
-    model = SwinTransformer(depths=DEPTHS, num_heads=NUM_HEADS, drop_rate=DROP_PATH_RATE, num_classes=num_classes)
+    model = SwinTransformer(depths=DEPTHS, embed_dim=EMBED_DIM, num_heads=NUM_HEADS, drop_rate=DROP_PATH_RATE, num_classes=num_classes)
     if pretrained:
         url = model_urls['in_22k_base'] if in_22k else model_urls['in_1k_base']
         checkpoint = torch.hub.load_state_dict_from_url(url=url, map_location="cpu")

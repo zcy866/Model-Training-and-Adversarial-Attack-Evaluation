@@ -63,7 +63,7 @@ class imageTestDataset(torch.utils.data.Dataset):
         path, target = self.samples[index]
         sample = self.loader(path)
         trans_sample = self.transform(sample)
-        return {"x": trans_sample, "y": target, "ori_x": np.array(transforms.Resize((224, 224))(sample)), "blur_x": self.adv_transform(sample)}
+        return {"x": trans_sample, "y": target, "ori_x_path": path, "blur_x": self.adv_transform(sample)}
 
     def __len__(self):
         return len(self.samples)

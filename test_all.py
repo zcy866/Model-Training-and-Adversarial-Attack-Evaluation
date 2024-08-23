@@ -22,6 +22,7 @@ def main():
     parser.add_argument("name", type=str)
     parser.add_argument("configs", nargs="*")
     parser.add_argument("--data_dir", type=str, default="./datasets")
+    parser.add_argument("--each_sample_score_record_folder", type=str, default="./score_record")
     parser.add_argument("--task", type=str, default="attack_dataset")
     parser.add_argument("--data", type=str, default="train_train_val_clean")
     parser.add_argument("--img_model", type=str, default="ResNet-50")

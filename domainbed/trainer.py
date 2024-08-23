@@ -146,19 +146,20 @@ def train(args, hparams, n_steps, checkpoint_freq, logger):
             checkpoint_vals = collections.defaultdict(lambda: [])
 
             if args.model_save and step >= args.model_save:
-                save_path = os.path.join('./save_model', args.task, args.algorithm, args.name, str(step))
-                if not os.path.exists(save_path):
-                    os.makedirs(save_path)
+
+                #save_path = os.path.join('./save_model', args.task, args.algorithm, args.name, str(step))
+                #if not os.path.exists(save_path):
+                #    os.makedirs(save_path)
                 save_dict = {
                     "args": vars(args),
                     "model_hparams": dict(hparams),
                     "model": algorithm.cpu().state_dict()
                 }
                 algorithm.to(device)
-                if not args.debug:
-                    torch.save(save_dict, os.path.join('./save_model', args.task, args.algorithm, args.name, str(step), "model.pkl"))
-                else:
-                    logger.debug("DEBUG Mode -> no save (org path: %s)" % save_path)
+                #if not args.debug:
+                #    torch.save(save_dict, os.path.join('./save_model', args.task, args.algorithm, args.name, str(step), "model.pkl"))
+                #else:
+                #    logger.debug("DEBUG Mode -> no save (org path: %s)" % save_path)
                 if best_accuracy < summaries["val_accuracy"]:
                     best_accuracy = summaries["val_accuracy"]
                     save_path = os.path.join('./save_model', args.task, args.algorithm, args.name, "best_model")

@@ -40,6 +40,10 @@ def _hparams(algorithm, random_state):
         hparams["stop_update_step"] = (0.9, [0.85, 0.9, 0.95])
     elif algorithm == "SAM":
         hparams["rho"] = (0.05, [0.01, 0.05, 0.1])
+    elif algorithm == "PDGTraining":
+        hparams["epsilon"] = (0.1, [0.1])
+        hparams["num_steps"] = (5, [5, 10, 15])
+        hparams["perturb_step_size"] = (0.01, [0.01])
 
 
     #EMA_Distil
