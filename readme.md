@@ -16,13 +16,13 @@
 * options of algorithm_name: ERM,  Linear_Prob, LP_FT
 * options of optimizer_name: adam, sgd, adamw
 * options of data_split_type: train_train_val_clean, train_const_val_const
-* example: python train_all.py ResNet_50 --data_dir ./datasets --trial_seed 0 --algorithm Linear_Prob --checkpoint_freq 1000 --steps 10000 --img_model ResNet-50 --lr 5e-5 --weight_decay 1e-4
+* example: python train_all.py ResNet_50 --data_dir ./datasets --trial_seed 0 --algorithm ERM --checkpoint_freq 1000 --steps 10000 --img_model ResNet-50 --lr 5e-5 --weight_decay 1e-4
 * Important: the model will be saved in ./save_model
 
 **compute attack score:**
 
-* script: python test_all.py <\name> --data_dir ./datasets --trial_seed 0 --algorithm <\algorithm_name> --swad False --blur_scale <\blur_scale> --img_model <\model_name> --data <\data_split_type>
-* example: python test_all.py ResNet-50_clean --data_dir ./datasets --trial_seed 0 --algorithm ERM --swad False --blur_scale 0.1 --img_model ResNet-50
+* script: python test_all.py <\name> --data_dir ./datasets --trial_seed 0 --algorithm <\algorithm_name> --swad False --blur_scale <\blur_scale> --img_model <\model_name> --data <\data_split_type> --each_sample_score_record_folder <\the_folder_that_save_the_record_file_of_each_sample?
+* example: python test_all.py ResNet-50_clean --data_dir ./datasets --trial_seed 0 --algorithm ERM --swad False --blur_scale 0.1 --img_model ResNet-50 --each_sample_score_record_folder ./score_record
 
 **analyze model:**
 * script: python analysis_tool.py <\name> --data_dir ./datasets --trial_seed 0 --algorithm <\algorithm_name> --swad False --data <\data_split_type>
