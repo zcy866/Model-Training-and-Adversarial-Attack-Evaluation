@@ -21,7 +21,7 @@
 
 **compute attack score for single model and single adversarial samples:**
 
-* script: python test_all.py <\name> --data_dir ./datasets --trial_seed <\seed>  --algorithm <\algorithm_name> --swad False --blur_scale <\blur_scale> --img_model <\model_name> --data <\data_split_type> --each_sample_score_record_folder <\the_folder_that_save_the_record_file_of_each_sample> --adv_sample_name </name_or_child_path_name_of_adversarial samples>
+* script: python single_test.py <\name> --data_dir ./datasets --trial_seed <\seed>  --algorithm <\algorithm_name> --swad False --blur_scale <\blur_scale> --img_model <\model_name> --data <\data_split_type> --each_sample_score_record_folder <\the_folder_that_save_the_record_file_of_each_sample> --adv_sample_name </name_or_child_path_name_of_adversarial samples>
 * example: python single_test.py convnext-S_clean  --data_dir ./datasets --trial_seed 0 --algorithm ERM --swad False --blur_scale 0.1 --img_model convnext-S --each_sample_score_record_folder ./score_record --adv_sample_name adv_samples
 
 **select the best subset of adversarial samples from all adversarial samples based on multiple models:**
