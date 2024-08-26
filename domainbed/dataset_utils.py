@@ -203,6 +203,8 @@ def build_adv_dataset(args):
     task_name = args.task
     model = args.img_model
     val_transform = get_val_transform(model)
+    adv_base_name = args.adv_data_dir_name
+    adv_folder_name = args.adv_sample_name
     adv_transform = get_test_blur_transform(model, args.blur_scale)
 
     if args.data == "train_train_val_clean":
@@ -211,9 +213,16 @@ def build_adv_dataset(args):
         in_img_samples = in_img_folder_dataset.samples
         classes = in_img_folder_dataset.classes
 
-        test_path = os.path.join(data_dir, task_name, "adv_samples")
+        if len(adv_base_name) == 0:
+            test_path = os.path.join(data_dir, task_name, adv_folder_name)
+        else:
+            test_path = os.path.join(data_dir, task_name, adv_base_name, adv_folder_name)
         out_img_samples = torchvision.datasets.ImageFolder(test_path).samples
 
+    else:
+        raise NotImplementedError
+
+    '''
     elif args.data == "train_const_val_const":
         train_path = os.path.join(data_dir, task_name, "split_train")
         in_img_folder_dataset = torchvision.datasets.ImageFolder(train_path)
@@ -222,9 +231,7 @@ def build_adv_dataset(args):
 
         test_path = os.path.join(data_dir, task_name, "adv_samples")
         out_img_samples = torchvision.datasets.ImageFolder(test_path).samples
-
-    else:
-        raise NotImplementedError
+    '''
 
     dataset_train = imageTestDataset(in_img_samples, val_transform, adv_transform)
     dataset_val = imageTestDataset(out_img_samples, val_transform, adv_transform)

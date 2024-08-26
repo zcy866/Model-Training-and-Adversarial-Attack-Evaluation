@@ -18,6 +18,49 @@ if torch.cuda.is_available():
 else:
     device = "cpu"
 
+class sampleRecord():
+    def __init__(self, base_keys, datas):
+        self.base_keys = base_keys
+        for key, val in datas.items():
+            if key not in base_keys:
+                raise
+        self.datas = datas
+
+    def to_list(self):
+        output = []
+        for key in self.base_keys:
+            output.append(self.datas[key])
+        return output
+
+def get_class_score(each_sample_score, record_file_name=None):
+    class_lists = dict()
+    for record in each_sample_score:
+        y = record.datas["class"]
+        if y not in class_lists:
+            class_lists[y] = []
+        class_lists[y].append(record)
+    class_record = dict()
+    for y, inner_record_list in class_lists.items():
+        lens = len(inner_record_list)
+        inner_actc = sum([record.datas["ACTC"] for record in inner_record_list])/lens
+        inner_ald = sum([record.datas["ALD"] for record in inner_record_list])/lens
+        inner_rgb = sum([record.datas["RGB"] for record in inner_record_list])/lens
+        inner_score = sum([record.datas["score"] for record in inner_record_list])/lens
+        class_record[y] = {
+            "ACTC":inner_actc,
+            "ALD": inner_ald,
+            "RGB": inner_rgb,
+            "score": inner_score,
+            "list": [y, inner_actc, inner_ald, inner_rgb, inner_score]
+        }
+    if record_file_name is not None:
+        record_results = [["class", "ACTC", "ALD", "RGB", "score"]]
+        for _, result in class_record.items():
+            record_results.append(result["list"])
+        with open(record_file_name, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerows(record_results)
+    return class_record
 
 def json_handler(v):
     if isinstance(v, (Path, range)):
@@ -47,7 +90,8 @@ def balance_analysis(args, hparams, data_loader, algorithm) -> dict:
     results["sorted_class"] = sorted(list(enumerate(results["accuracy_each_class"])), key=lambda x:x[1])
     return results
 
-def advTest(args, hparams, n_steps, checkpoint_freq, logger):
+
+def advTest(args, hparams, logger):
     logger.info("")
 
     #######################################################
@@ -100,7 +144,8 @@ def advTest(args, hparams, n_steps, checkpoint_freq, logger):
     RGB_member = 0
     use_num = 0
     over_confident_num = 0
-    each_sample_score = [["path", "ACTC", "ALD", "RGB", "overall"]] #used for recording score for each sample
+    base_record_keys = ["class", "path", "ACTC", "ALD", "RGB", "score"]
+    each_sample_score = [] #used for recording score for each sample
     with torch.no_grad():
         for clean_batch, adv_batch in zip(data_loader_clean, data_loader_adv):
             assert clean_batch["y"].sum() == adv_batch["y"].sum()
@@ -132,6 +177,7 @@ def advTest(args, hparams, n_steps, checkpoint_freq, logger):
                 if correct:
                     distance = 64
                 if distance > 64.1:
+                    print("a sample is over-perturbed")
                     print(distance)
                     print(x1_path)
                     print(x2_path)
@@ -139,13 +185,20 @@ def advTest(args, hparams, n_steps, checkpoint_freq, logger):
                     adv_pi[true_yi] = 1
                     hard_blur_adv_pred[inner_i] = true_yi
                     blur_adv_yi = true_yi
-                    print("a sample is over-perturbed")
-                    raise
+                    distance = 64
 
                 ald_score = 1 - distance / 64
                 actc_score = 1 - adv_pi[true_yi].item()
                 rgb_score = ((adv_yi != true_yi).float() * (blur_adv_yi != true_yi).float() / ((adv_yi != true_yi).float() + 1e-6)).item()
-                each_sample_score.append([x2_path, actc_score, ald_score, rgb_score, (actc_score+ald_score+rgb_score)/3])
+                record_unit = {
+                    "class":true_yi.item(),
+                    "path":x2_path,
+                    "ACTC":actc_score,
+                    "ALD":ald_score,
+                    "RGB":rgb_score,
+                    "score":(actc_score+ald_score+rgb_score)/3
+                }
+                each_sample_score.append(sampleRecord(base_record_keys, record_unit))#([true_yi.item(), x2_path, actc_score, ald_score, rgb_score, (actc_score+ald_score+rgb_score)/3])
 
                 inner_ALD += wi * distance / 64
                 avg_ALD_for_all += wi * math.sqrt(((x1 - x2)**2).sum())
@@ -162,29 +215,31 @@ def advTest(args, hparams, n_steps, checkpoint_freq, logger):
     final_score = ((1-ACTC) + (1-ALD) + RGB) / 3
 
     use_ratio = use_num / len(dataset_clean)
-
+    assert use_ratio > 0.99
+    get_class_score(each_sample_score, "class_score_output.csv")
     hparams["num_classes"] = data_info.num_classes
-    attack_balance = balance_analysis(args, hparams, data_loader_adv, algorithm)
+    #attack_balance = balance_analysis(args, hparams, data_loader_adv, algorithm)
     logger.info(f"Only clean samples that are correctly classified by the model will be used to calculate the score")
-    logger.info(f"use_num = "+str(use_num))
     logger.info(f"use_ratio = {use_ratio:.3%}")
     logger.info(f"ACTC_score = {1 - ACTC:.3%}")
     logger.info(f"ALD_score = {1 - ALD:.3%}")
     logger.info(f"RGB_score = {RGB:.3%}")
     logger.info(f"final_score = {final_score:.3%}")
     logger.info(f"avg_l2_distance = "+str(avg_ALD_for_all.item()))
-    for key, val in attack_balance.items():
-        logger.info(key)
-        logger.info(val)
+    #for key, val in attack_balance.items():
+    #    logger.info(key)
+    #    logger.info(val)
     output_name = 'output.csv'
-    output_path = os.path.join(args.each_sample_score_record_folder, output_name)
+    output_path = os.path.join(args.each_sample_score_record_folder, args.name+'_'+args.algorithm, output_name)
     logger.info(f"score of each sample are recorded in " + str(output_path))
-    if not os.path.exists(args.each_sample_score_record_folder):
-        os.makedirs(args.each_sample_score_record_folder)
+    if not os.path.exists(os.path.join(args.each_sample_score_record_folder, args.name+'_'+args.algorithm)):
+        os.makedirs(os.path.join(args.each_sample_score_record_folder, args.name+'_'+args.algorithm))
+    record_results = [base_record_keys] + [val.to_list() for val in each_sample_score]
     with open(output_path, 'w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerows(each_sample_score)
-    return [each_sample_score[-1] for i in range(len(each_sample_score))]
+        writer.writerows(record_results)
+    #return score, path
+    return [each_sample_score[i].datas["score"] for i in range(len(each_sample_score))], [each_sample_score[i].datas["path"] for i in range(len(each_sample_score))]
 
 
 

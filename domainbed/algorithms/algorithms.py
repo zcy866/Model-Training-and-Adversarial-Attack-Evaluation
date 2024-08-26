@@ -16,8 +16,6 @@ from typing import Any, Callable, Dict, Optional, Sequence, Set, Tuple, Type, Un
 import scipy
 import random
 
-from domainbed import networks
-from domainbed.lib.misc import random_pairs_of_minibatches, split_meta_train_test
 from domainbed.optimizers import get_optimizer, build_scheduler
 from domainbed.utils import GeneralMovingAverage, ModelEMA
 from domainbed.distil_base_networks.backbones import get_backbone
@@ -100,7 +98,7 @@ class ERM(Algorithm):
             beta_dist = scipy.stats.beta(0.5, 0.5)
             total_iter = hparams["steps"]
             weight_func = lambda it: beta_dist.pdf((it + 0.5) / (total_iter + 1))
-            self.avg_model = GeneralMovingAverage(self.network, weight_func)
+            self.avg_model = GeneralMovingAverage(self.featurizer, weight_func)
 
     def update(self, x, y, **kwargs):
         self.pre_step()
@@ -122,13 +120,18 @@ class ERM(Algorithm):
 
     def aft_step(self):
         if self.hparams["use_beta_esm"]:
-            self.avg_model.update(self.network)
+            self.avg_model.update(self.featurizer)
 
     def predict(self, x):
-        return self.network(x)
+        if self.hparams["use_beta_esm"]:
+            return self.classifier(self.avg_model(x))
+        else:
+            return self.network(x)
 
     def get_features(self, x):
         return self.featurizer(x)
+
+
 
 class Linear_Prob(ERM):
     def __init__(self, num_classes, hparams):

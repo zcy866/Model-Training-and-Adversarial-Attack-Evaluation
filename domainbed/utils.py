@@ -1,5 +1,6 @@
 import torch
 import copy
+import torch.nn as nn
 
 class GeneralMovingAverage(object):
     def __init__(self, model, weight_func):
@@ -7,7 +8,7 @@ class GeneralMovingAverage(object):
         self.iter = 0
         self.weight = weight_func(self.iter)
         self.weight_sum = self.weight
-        self.moving_avg = copy.deepcopy(model)
+        self.moving_avg = copy.deepcopy(model).cuda()
         for param in self.moving_avg.parameters():
             param.requires_grad = False
 
