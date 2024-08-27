@@ -44,12 +44,12 @@ def get_class_score(each_sample_score, record_file_name=None):
         lens = len(inner_record_list)
         inner_actc = sum([record.datas["ACTC"] for record in inner_record_list])/lens
         inner_ald = sum([record.datas["ALD"] for record in inner_record_list])/lens
-        inner_rgb = sum([record.datas["RGB"] for record in inner_record_list])/lens
+        inner_rgb = sum([record.datas["soft_RGB"] for record in inner_record_list])/lens
         inner_score = sum([record.datas["score"] for record in inner_record_list])/lens
         class_record[y] = {
             "ACTC":inner_actc,
             "ALD": inner_ald,
-            "RGB": inner_rgb,
+            "soft_RGB": inner_rgb,
             "score": inner_score,
             "list": [y, inner_actc, inner_ald, inner_rgb, inner_score]
         }
@@ -144,8 +144,9 @@ def advTest(args, hparams, logger):
     RGB_member = 0
     use_num = 0
     over_confident_num = 0
-    base_record_keys = ["class", "path", "ACTC", "ALD", "RGB", "score"]
+    base_record_keys = ["class", "path", "ACTC", "ALD", "soft_RGB", "score"]
     each_sample_score = [] #used for recording score for each sample
+    rgb_used_num = 0
     with torch.no_grad():
         for clean_batch, adv_batch in zip(data_loader_clean, data_loader_adv):
             assert clean_batch["y"].sum() == adv_batch["y"].sum()
@@ -157,6 +158,7 @@ def advTest(args, hparams, logger):
             blur_adv_pred = algorithm(blur_adv_x)
             soft_clean_pred = torch.softmax(clean_pred, dim=1)
             soft_adv_pred = torch.softmax(adv_pred, dim=1)
+            soft_blur_adv_pred = torch.softmax(blur_adv_pred, dim=1)
             hard_clean_pred = soft_clean_pred.data.max(1)[1]
             hard_adv_pred = soft_adv_pred.data.max(1)[1]
             hard_blur_adv_pred = blur_adv_pred.data.max(1)[1]
@@ -189,13 +191,15 @@ def advTest(args, hparams, logger):
 
                 ald_score = 1 - distance / 64
                 actc_score = 1 - adv_pi[true_yi].item()
-                rgb_score = ((adv_yi != true_yi).float() * (blur_adv_yi != true_yi).float() / ((adv_yi != true_yi).float() + 1e-6)).item()
+                rgb_score = 1 - soft_blur_adv_pred[inner_i][true_yi].item()#((adv_yi != true_yi).float() * (blur_adv_yi != true_yi).float() / ((adv_yi != true_yi).float() + 1e-6)).item()#
+                if adv_yi != true_yi:
+                    rgb_used_num += 1
                 record_unit = {
                     "class":true_yi.item(),
                     "path":x2_path,
                     "ACTC":actc_score,
                     "ALD":ald_score,
-                    "RGB":rgb_score,
+                    "soft_RGB":rgb_score,
                     "score":(actc_score+ald_score+rgb_score)/3
                 }
                 each_sample_score.append(sampleRecord(base_record_keys, record_unit))#([true_yi.item(), x2_path, actc_score, ald_score, rgb_score, (actc_score+ald_score+rgb_score)/3])
@@ -213,6 +217,11 @@ def advTest(args, hparams, logger):
     avg_ALD_for_all /= use_num
     RGB = RGB_member / (RGB_denominator + 1e-6)
     final_score = ((1-ACTC) + (1-ALD) + RGB) / 3
+
+    #handle mean of rgb_score of each sample to be the mean of rgb_score of overall samples
+    #for record in each_sample_score:
+    #    if record.datas["RGB"] == 0:
+    #        record.datas["RGB"] =
 
     use_ratio = use_num / len(dataset_clean)
     assert use_ratio > 0.99

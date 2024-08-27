@@ -162,7 +162,6 @@ model_urls = {
 }
 
 
-@register_model
 def convnext_tiny(pretrained=False, in_22k=False, **kwargs):
     if in_22k:
         num_classes = 21841
@@ -176,7 +175,6 @@ def convnext_tiny(pretrained=False, in_22k=False, **kwargs):
     return model
 
 
-@register_model
 def convnext_small(pretrained=False, in_22k=False, **kwargs):
     if in_22k:
         num_classes = 21841
@@ -190,7 +188,6 @@ def convnext_small(pretrained=False, in_22k=False, **kwargs):
     return model
 
 
-@register_model
 def convnext_base(pretrained=False, in_22k=False, **kwargs):
     if in_22k:
         num_classes = 21841
@@ -204,7 +201,6 @@ def convnext_base(pretrained=False, in_22k=False, **kwargs):
     return model
 
 
-@register_model
 def convnext_large(pretrained=False, in_22k=False, **kwargs):
     if in_22k:
         num_classes = 21841
@@ -217,8 +213,6 @@ def convnext_large(pretrained=False, in_22k=False, **kwargs):
         model.load_state_dict(checkpoint["model"])
     return model
 
-
-@register_model
 def convnext_xlarge(pretrained=False, in_22k=False, **kwargs):
     if in_22k:
         num_classes = 21841
